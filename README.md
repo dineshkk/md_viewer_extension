@@ -21,22 +21,11 @@ A lightweight Chrome extension that renders `.md` markdown files directly in the
 
 ## Installation (< 1 minute)
 
-### Option 1: Load from source (always latest)
-
-1. Pull latest: `sl pull` in your fbsource repo
+1. Pull latest extension at ~/md_viewer_extension/
 2. Open `chrome://extensions/` in Chrome
 3. Enable **Developer mode** (toggle in top-right)
 4. Click **Load unpacked**
-5. Select the folder `fbsource/users/di/dineshk/md_viewer_extension/`
-6. (For local files) Click **Details** on the extension card and enable **Allow access to file URLs**
-
-### Option 2: Download zip
-
-1. Download and unzip `md-viewer-extension.zip` from https://www.internalfb.com/code/fbsource/users/di/dineshk/md_viewer_extension/md-viewer-extension.zip
-2. Open `chrome://extensions/` in Chrome
-3. Enable **Developer mode** (toggle in top-right)
-4. Click **Load unpacked**
-5. Select the unzipped `md-viewer-extension` folder
+5. Select the folder `~/md_viewer_extension/`
 6. (For local files) Click **Details** on the extension card and enable **Allow access to file URLs**
 
 That's it! Open any `.md` file and it renders automatically.
