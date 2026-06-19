@@ -1,0 +1,659 @@
+/* Reset */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--md-bg);
+  color: var(--md-text);
+  line-height: 1.7;
+}
+
+/* Toolbar */
+#md-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 16px;
+  background: var(--md-toolbar-bg);
+  color: var(--md-toolbar-text);
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.md-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.md-file-icon {
+  font-size: 16px;
+  color: var(--md-toolbar-accent);
+}
+
+.md-filename {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--md-toolbar-text);
+}
+
+.md-toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.md-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#md-toolbar button,
+#md-toolbar select {
+  background: var(--md-toolbar-btn-bg);
+  color: var(--md-toolbar-text);
+  border: 1px solid var(--md-toolbar-btn-border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+#md-toolbar button:hover,
+#md-toolbar select:hover {
+  background: var(--md-toolbar-btn-hover);
+  border-color: var(--md-toolbar-btn-hover-border);
+}
+
+/* Active state for toggle buttons (e.g. Wide Tables) */
+#md-toolbar button.md-active {
+  background: var(--md-toolbar-btn-hover);
+  border-color: var(--md-toolbar-btn-hover-border);
+  font-weight: 600;
+}
+
+#md-toolbar select {
+  padding-right: 24px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6adc8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+}
+
+#md-zoom-level {
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--md-toolbar-muted);
+}
+
+/* Layout */
+#md-layout {
+  display: flex;
+  margin-top: 44px;
+  min-height: calc(100vh - 44px);
+}
+
+/* TOC sidebar */
+#md-toc {
+  width: 260px;
+  min-width: 260px;
+  padding: 20px 12px;
+  background: var(--md-toc-bg);
+  border-right: 1px solid var(--md-toc-border);
+  overflow-y: auto;
+  max-height: calc(100vh - 44px);
+  position: sticky;
+  top: 44px;
+  transition: width 0.2s, min-width 0.2s, padding 0.2s, opacity 0.2s;
+}
+
+#md-toc.md-toc-hidden {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  border-right: none;
+}
+
+.md-toc-title {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--md-toc-title);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+#md-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#md-toc li {
+  margin: 0;
+}
+
+#md-toc a {
+  display: block;
+  padding: 4px 8px;
+  color: var(--md-toc-link);
+  text-decoration: none;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#md-toc a:hover {
+  background: var(--md-toc-hover-bg);
+  color: var(--md-toc-hover-color);
+}
+
+/* Content area */
+#md-content {
+  flex: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
+  min-width: 0;
+}
+
+/* Full-width content (used by the Excalidraw viewer so wide drawings are not
+   shrunk into the narrow prose column). */
+#md-content.md-content-full {
+  max-width: none;
+  padding: 16px 20px 40px;
+}
+
+/* Rendered markdown */
+.md-rendered {
+  font-size: 16px;
+  transition: font-size 0.15s ease;
+}
+
+/* Headings */
+.md-heading {
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+  font-weight: 700;
+  color: var(--md-heading);
+  line-height: 1.3;
+  border-bottom: none;
+  scroll-margin-top: 60px;
+}
+
+h1.md-heading {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid var(--md-heading-border);
+}
+
+h2.md-heading {
+  font-size: 1.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--md-heading-border);
+}
+
+h3.md-heading { font-size: 1.25em; }
+h4.md-heading { font-size: 1.1em; }
+h5.md-heading { font-size: 1em; }
+h6.md-heading { font-size: 0.9em; color: var(--md-h6); }
+
+/* Paragraphs */
+.md-rendered p {
+  margin: 0 0 1em;
+}
+
+/* Links */
+.md-rendered a {
+  color: var(--md-link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.md-rendered a:hover {
+  border-bottom-color: var(--md-link);
+}
+
+/* Inline code */
+.md-inline-code {
+  background: var(--md-inline-code-bg);
+  color: var(--md-inline-code-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+/* Code blocks */
+.md-code-block {
+  position: relative;
+  margin: 1.2em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--md-code-bg);
+}
+
+.md-code-lang {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--md-code-lang);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+.md-code-block pre {
+  margin: 0;
+  padding: 20px 24px;
+  overflow-x: auto;
+}
+
+.md-code-block code {
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--md-code-text);
+  line-height: 1.6;
+}
+
+/* Syntax highlighting tokens */
+.sh-comment { color: var(--sh-comment); font-style: italic; }
+.sh-string { color: var(--sh-string); }
+.sh-keyword { color: var(--sh-keyword); font-weight: 600; }
+.sh-number { color: var(--sh-number); }
+.sh-function { color: var(--sh-function); }
+.sh-builtin { color: var(--sh-builtin); }
+.sh-type { color: var(--sh-type); }
+.sh-decorator { color: var(--sh-decorator); }
+.sh-tag { color: var(--sh-tag); font-weight: 600; }
+.sh-attr { color: var(--sh-attr); }
+.sh-variable { color: var(--sh-variable); }
+.sh-property { color: var(--sh-property); }
+.sh-selector { color: var(--sh-selector); font-weight: 600; }
+.sh-regex { color: var(--sh-regex); }
+.sh-inserted { color: var(--sh-inserted-text); background: var(--sh-inserted-bg); display: inline-block; width: 100%; }
+.sh-deleted { color: var(--sh-deleted-text); background: var(--sh-deleted-bg); display: inline-block; width: 100%; }
+.sh-diff-header { color: var(--sh-diff-header-text); font-weight: 600; }
+
+/* Blockquote */
+.md-blockquote {
+  margin: 1em 0;
+  padding: 12px 20px;
+  border-left: 4px solid var(--md-blockquote-border);
+  background: var(--md-blockquote-bg);
+  color: var(--md-blockquote-text);
+  border-radius: 0 6px 6px 0;
+}
+
+.md-blockquote p {
+  margin: 0.4em 0;
+}
+
+/* Lists */
+.md-list {
+  margin: 0.6em 0;
+  padding-left: 2em;
+}
+
+.md-list li {
+  margin: 0.3em 0;
+}
+
+/* Task list */
+.md-task-list {
+  list-style: none;
+  padding-left: 0.5em;
+}
+
+.md-task {
+  margin: 0.4em 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.md-task input[type="checkbox"] {
+  margin: 0;
+  transform: scale(1.1);
+  accent-color: var(--md-checkbox);
+}
+
+/* Table */
+.md-table-wrapper {
+  overflow-x: auto;
+  margin: 1.2em 0;
+  border-radius: 8px;
+  border: 1px solid var(--md-table-border);
+}
+
+.md-table {
+  border-collapse: collapse;
+  font-size: 0.95em;
+  white-space: nowrap;
+}
+
+.md-table th {
+  background: var(--md-table-header-bg);
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--md-table-header-border);
+  color: var(--md-table-header-text);
+  white-space: nowrap;
+}
+
+.md-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--md-table-row-border);
+}
+
+/* Wide-tables feature (toggleable). When enabled, tables break out of the
+   centered prose column to use the window width instead of forcing horizontal
+   scroll. Prose width is unchanged. Centering math stays correct under the cap
+   because half-width == the min(). */
+.md-wide-tables .md-table-wrapper {
+  width: min(1500px, 94vw);
+  margin: 1.2em calc(50% - min(750px, 47vw));
+}
+
+.md-wide-tables .md-table {
+  width: 100%;
+  white-space: normal;
+}
+
+.md-wide-tables .md-table td {
+  /* Wrap long text and break long unbroken tokens (e.g. file paths). */
+  overflow-wrap: anywhere;
+}
+
+.md-table tbody tr:hover {
+  background: var(--md-table-hover);
+}
+
+.md-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Excalidraw drawings */
+.md-excalidraw-container {
+  position: relative;
+  margin: 0;
+  border-radius: 8px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--md-table-border);
+  padding: 12px;
+}
+
+.md-excalidraw-container svg {
+  display: block;
+  margin: 0 auto;
+  height: auto;
+  max-width: none;
+}
+
+.md-excalidraw-error {
+  margin: 1.2em 0;
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--md-table-border);
+  background: var(--md-code-bg);
+  color: var(--md-code-text);
+  font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+/* Mermaid diagrams */
+.md-mermaid-container {
+  position: relative;
+  margin: 1.2em 0;
+  border-radius: 8px;
+  overflow: auto;
+  background: var(--md-code-bg);
+  max-height: 85vh;
+}
+
+.md-mermaid-container .mermaid {
+  margin: 0;
+  padding: 20px 24px;
+  text-align: center;
+  white-space: pre;
+  font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--md-code-text);
+  line-height: 1.6;
+}
+
+.md-mermaid-container .mermaid svg {
+  display: block;
+  margin: 0 auto;
+  height: auto;
+  /* Width is driven by mermaid-init.js (fit-to-width). Override Mermaid's
+     inline max-width cap so small diagrams can scale up to fill the space. */
+  max-width: none;
+}
+
+/* Mermaid zoom toolbar — bottom-left floating */
+.md-mermaid-toolbar {
+  position: sticky;
+  bottom: 8px;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  margin: 0 0 4px 8px;
+  width: fit-content;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.md-mermaid-container:hover .md-mermaid-toolbar,
+.md-mermaid-toolbar:hover {
+  opacity: 1;
+}
+
+.md-mermaid-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--md-code-text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1.4;
+  min-width: 24px;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.md-mermaid-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.md-mermaid-zoom-level {
+  font-size: 11px;
+  min-width: 34px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--md-code-text);
+  opacity: 0.7;
+}
+
+/* Horizontal rule */
+.md-hr {
+  border: none;
+  border-top: 2px solid var(--md-hr);
+  margin: 2em 0;
+}
+
+/* Images */
+.md-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.md-image:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Image lightbox */
+.md-image-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: pointer;
+  padding: 24px;
+}
+
+.md-image-full {
+  max-width: 95vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Mermaid diagram shown in the full-screen lightbox */
+.md-mermaid-full {
+  width: 95vw;
+  height: 92vh;
+  max-width: 95vw;
+  max-height: 92vh;
+  background: var(--md-code-bg);
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Excalidraw drawing shown in the full-screen lightbox */
+.md-excalidraw-full {
+  width: 95vw;
+  height: 92vh;
+  max-width: 95vw;
+  max-height: 92vh;
+  background: #fff;
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.md-image-overlay-close {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  background: none;
+  border: none;
+  line-height: 1;
+}
+
+.md-image-overlay-close:hover {
+  opacity: 1;
+}
+
+/* Raw view */
+#md-raw {
+  font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 0;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: transparent;
+  transition: font-size 0.15s ease;
+}
+
+/* Utility */
+.md-hidden {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #md-content {
+    padding: 24px 20px 60px;
+  }
+
+  #md-toc {
+    position: fixed;
+    top: 44px;
+    left: 0;
+    bottom: 0;
+    z-index: 900;
+    background: var(--md-toc-bg);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+  }
+
+  #md-toc.md-toc-hidden {
+    display: none;
+  }
+
+  .md-toolbar-left .md-filename {
+    max-width: 120px;
+  }
+}
+
+/* Print */
+@media print {
+  #md-toolbar, #md-toc { display: none; }
+  #md-content { max-width: 100%; padding: 0; margin: 0; }
+  #md-layout { margin-top: 0; }
+}
+
+/* Anchor links without href (file:// safe) */
+.md-anchor-link {
+  cursor: pointer;
+  color: var(--md-link);
+  text-decoration: underline;
+}
+.md-anchor-link:hover {
+  color: var(--md-link-hover, var(--md-link));
+}

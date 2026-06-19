@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown Viewer Extension - Unit Tests</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, monospace; margin: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    h2 { color: #dcdcaa; margin-top: 24px; }
+    .pass { color: #4ec9b0; }
+    .fail { color: #f44747; font-weight: bold; }
+    .summary { margin-top: 20px; padding: 12px; border-radius: 6px; font-size: 16px; }
+    .summary.all-pass { background: #1e3a2a; border: 1px solid #4ec9b0; }
+    .summary.has-fail { background: #3a1e1e; border: 1px solid #f44747; }
+    .test-line { margin: 4px 0; padding: 2px 8px; }
+  </style>
+</head>
+<body>
+  <h1>Markdown Viewer Extension - Unit Tests</h1>
+
+  <!-- Load extension scripts -->
+  <script src="syntax-highlighter.js"></script>
+  <script src="markdown-parser.js"></script>
+  <script src="themes.js"></script>
+
+  <script>
+    let passed = 0;
+    let failed = 0;
+    const results = [];
+
+    function assert(condition, description) {
+      if (condition) {
+        passed++;
+        results.push(`<div class="test-line pass">✓ ${description}</div>`);
+      } else {
+        failed++;
+        results.push(`<div class="test-line fail">✗ ${description}</div>`);
+      }
+    }
+
+    function assertEqual(actual, expected, description) {
+      if (actual === expected) {
+        passed++;
+        results.push(`<div class="test-line pass">✓ ${description}</div>`);
+      } else {
+        failed++;
+        results.push(`<div class="test-line fail">✗ ${description}<br>&nbsp;&nbsp;Expected: ${JSON.stringify(expected)}<br>&nbsp;&nbsp;Actual: ${JSON.stringify(actual)}</div>`);
+      }
+    }
+
+    function assertContains(html, substring, description) {
+      if (html.includes(substring)) {
+        passed++;
+        results.push(`<div class="test-line pass">✓ ${description}</div>`);
+      } else {
+        failed++;
+        results.push(`<div class="test-line fail">✗ ${description}<br>&nbsp;&nbsp;Expected to contain: ${JSON.stringify(substring)}<br>&nbsp;&nbsp;In: ${JSON.stringify(html.substring(0, 200))}</div>`);
+      }
+    }
+
+    function assertNotContains(html, substring, description) {
+      if (!html.includes(substring)) {
+        passed++;
+        results.push(`<div class="test-line pass">✓ ${description}</div>`);
+      } else {
+        failed++;
+        results.push(`<div class="test-line fail">✗ ${description}<br>&nbsp;&nbsp;Should NOT contain: ${JSON.stringify(substring)}</div>`);
+      }
+    }
+
+    // =============================================
+    // TEST SUITE: Heading ID Generation
+    // =============================================
+    results.push('<h2>Heading ID Generation</h2>');
+
+    (function testHeadingIds() {
+      // Simple heading
+      let html = MarkdownParser.parse('# Hello World');
+      assertContains(html, 'id="hello-world"', 'Simple heading generates correct ID');
+
+      // Heading with special characters (&)
+      html = MarkdownParser.parse('# SYSTEM CHARACTERISTICS & DESIGN PRIMITIVES');
+      assertContains(html, 'id="system-characteristics--design-primitives"',
+        'Heading with & generates double-dash ID (GitHub-compatible)');
+
+      // Heading with em-dash (—)
+      html = MarkdownParser.parse('# DISTRIBUTED SYSTEMS — INTERNALS');
+      assertContains(html, 'id="distributed-systems--internals"',
+        'Heading with em-dash generates double-dash ID');
+
+      // Heading with colon
+      html = MarkdownParser.parse('# PART I: Introduction');
+      assertContains(html, 'id="part-i-introduction"',
+        'Heading with colon generates correct ID');
+
+      // Heading with numbers
+      html = MarkdownParser.parse('## Chapter 3: Advanced Topics');
+      assertContains(html, 'id="chapter-3-advanced-topics"',
+        'Heading with numbers preserved in ID');
+
+      // Heading with multiple special chars
+      html = MarkdownParser.parse('# PART IV: RECOMMENDATION & ML SYSTEMS AT SCALE');
+      assertContains(html, 'id="part-iv-recommendation--ml-systems-at-scale"',
+        'Complex heading with colon and & generates correct ID');
+
+      // Heading with hyphen (should be preserved)
+      html = MarkdownParser.parse('## High-Scale System Design');
+      assertContains(html, 'id="high-scale-system-design"',
+        'Hyphens in headings are preserved');
+    })();
+
+    // =============================================
+    // TEST SUITE: Anchor Links (file:// safe)
+    // =============================================
+    results.push('<h2>Anchor Links (file:// safe)</h2>');
+
+    (function testAnchorLinks() {
+      // Internal anchor link uses data-target instead of href
+      let html = MarkdownParser.parse('[Go to section](#my-section)');
+      assertContains(html, 'data-target="my-section"',
+        'Anchor link uses data-target attribute');
+      assertContains(html, 'class="md-anchor-link"',
+        'Anchor link has md-anchor-link class');
+      assertNotContains(html, 'href="#my-section"',
+        'Anchor link does NOT use href="#"');
+
+      // External link still uses href
+      html = MarkdownParser.parse('[Google](https://google.com)');
+      assertContains(html, 'href="https://google.com"',
+        'External link still uses href');
+      assertContains(html, 'target="_blank"',
+        'External link opens in new tab');
+
+      // Anchor link with complex target
+      html = MarkdownParser.parse('[PART I](#part-i-system-characteristics--design-primitives)');
+      assertContains(html, 'data-target="part-i-system-characteristics--design-primitives"',
+        'Anchor link preserves double-dash in target');
+    })();
+
+    // =============================================
+    // TEST SUITE: Heading + TOC Link Matching
+    // =============================================
+    results.push('<h2>Heading + TOC Link Matching</h2>');
+
+    (function testHeadingTocMatch() {
+      // Simulate what the extension does: parse heading, then check if link target matches
+      const testCases = [
+        {
+          heading: '# PART I: SYSTEM CHARACTERISTICS & DESIGN PRIMITIVES',
+          link: '[PART I](#part-i-system-characteristics--design-primitives)',
+          desc: 'PART I with & - heading ID matches TOC link target'
+        },
+        {
+          heading: '# PART II: SEMINAL DISTRIBUTED SYSTEMS — INTERNALS',
+          link: '[PART II](#part-ii-seminal-distributed-systems--internals)',
+          desc: 'PART II with em-dash - heading ID matches TOC link target'
+        },
+        {
+          heading: '# PART III: HIGH-SCALE SYSTEM DESIGN PROBLEMS',
+          link: '[PART III](#part-iii-high-scale-system-design-problems)',
+          desc: 'PART III (no special chars) - heading ID matches TOC link target'
+        },
+        {
+          heading: '# PART V: CHEAT SHEETS & QUICK REFERENCE',
+          link: '[PART V](#part-v-cheat-sheets--quick-reference)',
+          desc: 'PART V with & - heading ID matches TOC link target'
+        }
+      ];
+
+      testCases.forEach(({ heading, link, desc }) => {
+        const headingHtml = MarkdownParser.parse(heading);
+        const linkHtml = MarkdownParser.parse(link);
+
+        // Extract the ID from the heading
+        const idMatch = headingHtml.match(/id="([^"]+)"/);
+        const headingId = idMatch ? idMatch[1] : null;
+
+        // Extract the data-target from the link
+        const targetMatch = linkHtml.match(/data-target="([^"]+)"/);
+        const linkTarget = targetMatch ? targetMatch[1] : null;
+
+        assertEqual(headingId, linkTarget, desc);
+      });
+    })();
+
+    // =============================================
+    // TEST SUITE: Markdown Parsing
+    // =============================================
+    results.push('<h2>Markdown Parsing</h2>');
+
+    (function testMarkdownParsing() {
+      // Bold
+      let html = MarkdownParser.parse('This is **bold** text');
+      assertContains(html, '<strong>bold</strong>', 'Bold text renders correctly');
+
+      // Italic
+      html = MarkdownParser.parse('This is *italic* text');
+      assertContains(html, '<em>italic</em>', 'Italic text renders correctly');
+
+      // Code block
+      html = MarkdownParser.parse('```python\nprint("hello")\n```');
+      assertContains(html, '<pre><code>', 'Code block renders');
+      assertContains(html, 'md-code-block', 'Code block has correct class');
+
+      // Inline code
+      html = MarkdownParser.parse('Use `const x = 1` here');
+      assertContains(html, '<code>', 'Inline code renders');
+
+      // Unordered list
+      html = MarkdownParser.parse('- Item 1\n- Item 2');
+      assertContains(html, '<ul', 'Unordered list renders');
+      assertContains(html, '<li>', 'List items render');
+
+      // Ordered list
+      html = MarkdownParser.parse('1. First\n2. Second');
+      assertContains(html, '<ol', 'Ordered list renders');
+
+      // Blockquote
+      html = MarkdownParser.parse('> This is a quote');
+      assertContains(html, '<blockquote', 'Blockquote renders');
+
+      // Table
+      html = MarkdownParser.parse('| A | B |\n| --- | --- |\n| 1 | 2 |');
+      assertContains(html, '<table', 'Table renders');
+      assertContains(html, '<th', 'Table headers render');
+      assertContains(html, '<td', 'Table cells render');
+
+      // Horizontal rule
+      html = MarkdownParser.parse('---');
+      assertContains(html, '<hr', 'Horizontal rule renders');
+
+      // Image
+      html = MarkdownParser.parse('![alt text](image.png)');
+      assertContains(html, '<img', 'Image renders');
+      assertContains(html, 'alt="alt text"', 'Image alt text preserved');
+
+      // Strikethrough
+      html = MarkdownParser.parse('This is ~~deleted~~ text');
+      assertContains(html, '<del>deleted</del>', 'Strikethrough renders');
+
+      // Task list (note: parser handles these as regular list items with checkbox text)
+      html = MarkdownParser.parse('- [x] Done\n- [ ] Not done');
+      assertContains(html, '<ul', 'Task list renders as list');
+      assertContains(html, '<li>', 'Task list items render');
+    })();
+
+    // =============================================
+    // TEST SUITE: Edge Cases
+    // =============================================
+    results.push('<h2>Edge Cases</h2>');
+
+    (function testEdgeCases() {
+      // Empty input
+      let html = MarkdownParser.parse('');
+      assertEqual(html, '', 'Empty input returns empty string');
+
+      // Heading with trailing hashes
+      html = MarkdownParser.parse('## Hello ##');
+      assertContains(html, '>Hello<', 'Trailing hashes removed from heading');
+
+      // HTML entities are escaped
+      html = MarkdownParser.parse('Use <script> tags');
+      assertContains(html, '&lt;script&gt;', 'HTML tags are escaped');
+
+      // Multiple headings get unique IDs
+      html = MarkdownParser.parse('# Intro\n## Details\n### Sub-details');
+      assertContains(html, 'id="intro"', 'H1 ID correct');
+      assertContains(html, 'id="details"', 'H2 ID correct');
+      assertContains(html, 'id="sub-details"', 'H3 ID correct');
+
+      // Bare URL auto-linking
+      html = MarkdownParser.parse('Visit https://example.com today');
+      assertContains(html, 'href="https://example.com"', 'Bare URL auto-linked');
+      assertContains(html, 'target="_blank"', 'Bare URL opens in new tab');
+    })();
+
+    // =============================================
+    // TEST SUITE: Mermaid Block Parsing
+    // =============================================
+    results.push('<h2>Mermaid Block Parsing</h2>');
+
+    (function testMermaidParsing() {
+      // Basic mermaid block produces .mermaid container
+      let html = MarkdownParser.parse('```mermaid\nflowchart LR\n  A --> B\n```');
+      assertContains(html, 'md-mermaid-container', 'Mermaid block has container class');
+      assertContains(html, 'class="mermaid"', 'Mermaid block has mermaid class on pre');
+      assertNotContains(html, 'md-code-block', 'Mermaid block is NOT rendered as code block');
+      assertNotContains(html, 'md-code-lang', 'Mermaid block has no language label');
+
+      // Mermaid content is HTML-escaped but preserved
+      html = MarkdownParser.parse('```mermaid\nA --> B\n```');
+      assertContains(html, 'A --&gt; B', 'Mermaid content is HTML-escaped (arrows)');
+
+      // Sequence diagram syntax
+      html = MarkdownParser.parse('```mermaid\nsequenceDiagram\n  A->>B: hello\n```');
+      assertContains(html, 'md-mermaid-container', 'Sequence diagram in mermaid container');
+      assertContains(html, 'sequenceDiagram', 'Sequence diagram keyword preserved');
+
+      // Flowchart syntax
+      html = MarkdownParser.parse('```mermaid\nflowchart TB\n  Start --> End\n```');
+      assertContains(html, 'flowchart TB', 'Flowchart keyword preserved');
+
+      // Non-mermaid code blocks still render normally
+      html = MarkdownParser.parse('```python\nprint("hello")\n```');
+      assertContains(html, 'md-code-block', 'Python block is a code block');
+      assertNotContains(html, 'md-mermaid-container', 'Python block is NOT a mermaid container');
+      assertContains(html, 'md-code-lang', 'Python block has language label');
+
+      // Plain code block (no language) still renders normally
+      html = MarkdownParser.parse('```\nsome text\n```');
+      assertContains(html, 'md-code-block', 'Plain code block renders as code block');
+      assertNotContains(html, 'md-mermaid-container', 'Plain code block is NOT mermaid');
+
+      // Multiple mermaid blocks
+      html = MarkdownParser.parse('```mermaid\nA --> B\n```\n\nSome text\n\n```mermaid\nC --> D\n```');
+      const mermaidCount = (html.match(/md-mermaid-container/g) || []).length;
+      assertEqual(mermaidCount, 2, 'Multiple mermaid blocks both render as mermaid containers');
+
+      // Mixed mermaid and code blocks
+      html = MarkdownParser.parse('```mermaid\nA --> B\n```\n\n```javascript\nconst x = 1;\n```');
+      assertContains(html, 'md-mermaid-container', 'Mixed: mermaid container present');
+      assertContains(html, 'md-code-block', 'Mixed: code block also present');
+
+      // Mermaid block with complex content (the kind that was failing)
+      html = MarkdownParser.parse('```mermaid\nsequenceDiagram\n  participant A as "Foo / Bar"\n  A->>A: hello(world)\n```');
+      assertContains(html, 'md-mermaid-container', 'Complex mermaid with quoted alias renders');
+      assertContains(html, 'participant A as &quot;Foo / Bar&quot;', 'Quoted participant alias preserved');
+
+      // Mermaid with subgraph
+      html = MarkdownParser.parse('```mermaid\nflowchart TB\n  subgraph Driver["Driver JVM"]\n    A\n    B\n  end\n```');
+      assertContains(html, 'subgraph', 'Subgraph keyword preserved in mermaid');
+
+      // Empty mermaid block
+      html = MarkdownParser.parse('```mermaid\n```');
+      assertContains(html, 'md-mermaid-container', 'Empty mermaid block still creates container');
+    })();
+
+    // =============================================
+    // TEST SUITE: Image Rendering
+    // =============================================
+    results.push('<h2>Image Rendering</h2>');
+
+    (function testImageRendering() {
+      // Basic image
+      let html = MarkdownParser.parse('![alt text](image.png)');
+      assertContains(html, '<img', 'Basic image renders img tag');
+      assertContains(html, 'src="image.png"', 'Image src is correct');
+      assertContains(html, 'alt="alt text"', 'Image alt text is correct');
+      assertContains(html, 'class="md-image"', 'Image has md-image class');
+
+      // Image with relative path
+      html = MarkdownParser.parse('![diagram](./docs/arch.png)');
+      assertContains(html, 'src="./docs/arch.png"', 'Relative path preserved in image src');
+
+      // Image with absolute URL
+      html = MarkdownParser.parse('![logo](https://example.com/logo.png)');
+      assertContains(html, 'src="https://example.com/logo.png"', 'Absolute URL preserved in image src');
+
+      // Image with empty alt text
+      html = MarkdownParser.parse('![](photo.jpg)');
+      assertContains(html, 'alt=""', 'Empty alt text produces empty alt attribute');
+      assertContains(html, 'src="photo.jpg"', 'Image src still correct with empty alt');
+
+      // Image with spaces in alt text
+      html = MarkdownParser.parse('![my cool diagram](diagram.svg)');
+      assertContains(html, 'alt="my cool diagram"', 'Spaces in alt text preserved');
+
+      // Image with query params in URL
+      html = MarkdownParser.parse('![thumb](image.png?w=200&h=100)');
+      assertContains(html, 'src="image.png?w=200&amp;h=100"', 'Query params preserved in image URL');
+
+      // Image inline with text
+      html = MarkdownParser.parse('See this ![icon](icon.png) image');
+      assertContains(html, '<img', 'Inline image renders');
+      assertContains(html, 'See this', 'Text before inline image preserved');
+      assertContains(html, 'image', 'Text after inline image preserved');
+
+      // Image is not confused with link
+      html = MarkdownParser.parse('[not an image](link.html)');
+      assertNotContains(html, '<img', 'Link is NOT rendered as image');
+      assertContains(html, '<a', 'Link renders as anchor');
+
+      // Multiple images
+      html = MarkdownParser.parse('![a](1.png)\n\n![b](2.png)');
+      const imgCount = (html.match(/<img/g) || []).length;
+      assertEqual(imgCount, 2, 'Multiple images both render');
+    })();
+
+    // =============================================
+    // TEST SUITE: Table Rendering
+    // =============================================
+    results.push('<h2>Table Rendering</h2>');
+
+    (function testTableRendering() {
+      // Basic table
+      let html = MarkdownParser.parse('| Name | Value |\n| --- | --- |\n| A | 1 |');
+      assertContains(html, '<table', 'Basic table renders');
+      assertContains(html, 'md-table-wrapper', 'Table has wrapper for overflow');
+      assertContains(html, 'md-table', 'Table has md-table class');
+      assertContains(html, '<th', 'Table has header cells');
+      assertContains(html, '<td', 'Table has data cells');
+
+      // Table with alignment
+      html = MarkdownParser.parse('| Left | Center | Right |\n| :--- | :---: | ---: |\n| a | b | c |');
+      assertContains(html, 'text-align:left', 'Left alignment applied');
+      assertContains(html, 'text-align:center', 'Center alignment applied');
+      assertContains(html, 'text-align:right', 'Right alignment applied');
+
+      // Table with inline formatting
+      html = MarkdownParser.parse('| Header |\n| --- |\n| **bold** |');
+      assertContains(html, '<strong>bold</strong>', 'Bold text inside table cell renders');
+
+      // Table with many columns (width test)
+      html = MarkdownParser.parse('| A | B | C | D | E | F | G | H |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |');
+      const thCount = (html.match(/<th /g) || []).length;
+      assertEqual(thCount, 8, 'Table with 8 columns renders all headers');
+
+      // Table with long content
+      html = MarkdownParser.parse('| Short | Very long cell content that should not be truncated |\n| --- | --- |\n| a | This is a really long description |\n');
+      assertContains(html, 'Very long cell content', 'Long header content preserved');
+      assertContains(html, 'really long description', 'Long cell content preserved');
+
+      // Multiple rows
+      html = MarkdownParser.parse('| H |\n| --- |\n| r1 |\n| r2 |\n| r3 |');
+      const tdCount = (html.match(/<td/g) || []).length;
+      assertEqual(tdCount, 3, 'Table with 3 data rows renders all rows');
+    })();
+
+    // =============================================
+    // TEST SUITE: Mermaid Syntax Compatibility
+    // =============================================
+    results.push('<h2>Mermaid Syntax Compatibility</h2>');
+
+    (function testMermaidSyntaxCompat() {
+      // Test that the parser preserves mermaid syntax correctly for the library to parse
+      // These test the HTML-escaped output that mermaid will receive via textContent
+
+      // Arrows are escaped but recoverable via textContent
+      let html = MarkdownParser.parse('```mermaid\nA->>B: msg\n```');
+      assertContains(html, 'A-&gt;&gt;B: msg', 'Arrow ->> is HTML-escaped in source');
+
+      // Dashed arrows
+      html = MarkdownParser.parse('```mermaid\nA-->>B: msg\n```');
+      assertContains(html, 'A--&gt;&gt;B: msg', 'Dashed arrow -->> is HTML-escaped');
+
+      // Bidirectional arrows in flowchart
+      html = MarkdownParser.parse('```mermaid\nA <--> B\n```');
+      assertContains(html, 'A &lt;--&gt; B', 'Bidirectional arrow <--> is HTML-escaped');
+
+      // Subgraph with quotes
+      html = MarkdownParser.parse('```mermaid\nsubgraph S["My Label"]\n  A\nend\n```');
+      assertContains(html, 'S[&quot;My Label&quot;]', 'Quoted subgraph label is HTML-escaped');
+
+      // Pipe character in flowchart labels
+      html = MarkdownParser.parse('```mermaid\nA -->|label| B\n```');
+      assertContains(html, 'A --&gt;|label| B', 'Pipe-delimited label preserved');
+
+      // The pre.mermaid textContent should decode HTML entities back
+      // (This is what mermaid.js reads — simulate by creating a DOM element)
+      const div = document.createElement('div');
+      div.innerHTML = MarkdownParser.parse('```mermaid\nA->>B: hello\n```');
+      const pre = div.querySelector('.mermaid');
+      assert(pre !== null, 'Mermaid pre element exists in parsed output');
+      if (pre) {
+        assertContains(pre.textContent, 'A->>B: hello',
+          'textContent decodes HTML entities back to original mermaid syntax');
+      }
+
+      // Full sequence diagram textContent recovery
+      const seqDiagram = '```mermaid\nsequenceDiagram\n  participant A as "Foo / Bar"\n  A->>A: test\n  A-->>A: response\n```';
+      div.innerHTML = MarkdownParser.parse(seqDiagram);
+      const pre2 = div.querySelector('.mermaid');
+      if (pre2) {
+        assertContains(pre2.textContent, 'A->>A: test',
+          'Sequence diagram arrows recovered in textContent');
+        assertContains(pre2.textContent, 'A-->>A: response',
+          'Dashed sequence arrows recovered in textContent');
+        assertContains(pre2.textContent, '"Foo / Bar"',
+          'Quoted participant alias recovered in textContent');
+      }
+    })();
+
+    // =============================================
+    // TEST SUITE: Themes
+    // =============================================
+    results.push('<h2>Themes</h2>');
+
+    (function testThemes() {
+      const themes = MdThemes.list();
+      assert(themes.length > 0, 'At least one theme exists');
+      assert(themes.some(t => t.id === 'dark'), 'Dark theme exists');
+      assert(themes.some(t => t.id === 'default'), 'Default/Light theme exists');
+
+      // Each theme has required fields
+      themes.forEach(t => {
+        assert(t.id && t.name, `Theme "${t.id}" has id and name`);
+      });
+    })();
+
+    // =============================================
+    // RENDER RESULTS
+    // =============================================
+    const summaryClass = failed === 0 ? 'all-pass' : 'has-fail';
+    const summaryText = failed === 0
+      ? `All ${passed} tests passed!`
+      : `${failed} failed, ${passed} passed out of ${passed + failed} tests`;
+
+    document.body.innerHTML += `
+      <div class="summary ${summaryClass}">${summaryText}</div>
+      ${results.join('')}
+    `;
+  </script>
+</body>
+</html>

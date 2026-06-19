@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Markdown Viewer",
+  "version": "1.5.0",
+  "description": "Render and view .md markdown and .excalidraw files with zoom support",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "include_globs": ["*://*/*.md", "*://*/*.md?*", "file:///*.md"],
+      "js": ["syntax-highlighter.js", "markdown-parser.js", "themes.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "include_globs": ["*://*/*.excalidraw", "*://*/*.excalidraw?*", "file:///*.excalidraw"],
+      "js": ["themes.js", "excalidraw-renderer.js", "excalidraw-viewer.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [{
+    "resources": ["mermaid.min.js", "mermaid-init.js"],
+    "matches": ["<all_urls>"]
+  }]
+}
